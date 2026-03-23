@@ -3,317 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chess Coach — Game Analyzer</title>
+<title>Chess Coach</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
 :root {
-  --bg:       #0c0e14;
-  --s1:       #131620;
-  --s2:       #1a1e2e;
-  --s3:       #21263a;
-  --border:   #2c3150;
-  --accent:   #52b788;
-  --gold:     #c9a84c;
-  --text:     #dde1f5;
-  --muted:    #6a709a;
-  --dim:      #3d4268;
-  --green:    #52b788;
-  --yellow:   #e9c46a;
-  --orange:   #f4a261;
-  --red:      #e63946;
-  --blue:     #4895ef;
-  --font-body: 'DM Sans', sans-serif;
-  --font-head: 'Cinzel', serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --bg: #0c0e14; --s1: #131620; --s2: #1a1e2e; --s3: #21263a;
+  --border: #2c3150; --accent: #52b788; --gold: #c9a84c;
+  --text: #dde1f5; --muted: #6a709a; --dim: #3d4268;
+  --green: #52b788; --yellow: #e9c46a; --orange: #f4a261; --red: #e63946; --blue: #4895ef;
+  --font-body: 'DM Sans', sans-serif; --font-head: 'Cinzel', serif; --font-mono: 'JetBrains Mono', monospace;
 }
-
 html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; overflow: hidden; }
-
-/* ── LAYOUT ───────────────────────────────────────── */
 .shell { display: flex; flex-direction: column; height: 100vh; }
-
-header {
-  flex-shrink: 0;
-  background: var(--s1);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.logo {
-  font-family: var(--font-head);
-  font-size: 1.05rem;
-  letter-spacing: 2px;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.logo-piece { font-size: 1.4rem; color: var(--accent); }
+header { flex-shrink: 0; background: var(--s1); border-bottom: 1px solid var(--border); padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+.logo { font-family: var(--font-head); font-size: 1.05rem; letter-spacing: 2px; color: var(--text); display: flex; align-items: center; gap: 10px; }
 .logo em { color: var(--accent); font-style: normal; }
 .header-sub { font-size: .72rem; color: var(--muted); letter-spacing: .5px; }
-
-.nav {
-  flex-shrink: 0;
-  display: flex;
-  background: var(--s1);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-}
-.nav-tab {
-  padding: 10px 16px;
-  font-size: .78rem;
-  font-weight: 600;
-  letter-spacing: .8px;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color .2s, border-color .2s;
-}
-.nav-tab:hover { color: var(--text); }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-.pages { flex: 1; overflow: hidden; }
-.page { display: none; height: 100%; overflow-y: auto; padding: 20px 24px; }
-.page.active { display: block; }
-
-/* ── CARDS ────────────────────────────────────────── */
-.card {
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 18px 20px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: .7rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.nav { flex-shrink: 0; display: flex; background: var(--s1); border-bottom: 1px solid var(--border); padding: 0 24px; }
+.nav-tab { padding: 10px 16px; font-size: .78rem; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
+.nav-tab:hover { color: var(--text); } .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.pages { flex: 1; overflow: hidden; } .page { display: none; height: 100%; overflow-y: auto; padding: 20px 24px; } .page.active { display: block; }
+.card { background: var(--s1); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+.card-title { font-size: .7rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-/* ── FORM ELEMENTS ────────────────────────────────── */
-textarea, select {
-  background: var(--s2);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  padding: 10px 13px;
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: .82rem;
-  width: 100%;
-  outline: none;
-  transition: border-color .2s;
-  resize: vertical;
-}
-textarea { min-height: 105px; }
-textarea:focus, select:focus { border-color: var(--accent); }
-select { font-family: var(--font-body); cursor: pointer; }
-
+textarea, select { background: var(--s2); border: 1px solid var(--border); border-radius: 7px; padding: 10px 13px; color: var(--text); font-family: var(--font-mono); font-size: .82rem; width: 100%; outline: none; transition: border-color .2s; resize: vertical; }
+textarea { min-height: 110px; } textarea:focus, select:focus { border-color: var(--accent); } select { font-family: var(--font-body); cursor: pointer; }
 .input-row { display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
-
-.btn {
-  padding: 8px 18px;
-  border-radius: 7px;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: .82rem;
-  letter-spacing: .3px;
-  transition: all .18s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.btn-primary { background: var(--accent); color: #0a1a12; }
-.btn-primary:hover:not(:disabled) { background: #6dcfa3; }
-.btn-ghost { background: var(--s2); color: var(--text); border: 1px solid var(--border); }
-.btn-ghost:hover:not(:disabled) { border-color: var(--muted); background: var(--s3); }
-.btn-gold { background: var(--gold); color: #1a1000; }
-.btn-gold:hover:not(:disabled) { background: #dbb85c; }
+.btn { padding: 8px 18px; border-radius: 7px; border: none; cursor: pointer; font-family: var(--font-body); font-weight: 600; font-size: .82rem; transition: all .18s; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.btn-primary { background: var(--accent); color: #0a1a12; } .btn-primary:hover:not(:disabled) { background: #6dcfa3; }
+.btn-ghost { background: var(--s2); color: var(--text); border: 1px solid var(--border); } .btn-ghost:hover:not(:disabled) { background: var(--s3); }
+.btn-gold { background: var(--gold); color: #1a1000; } .btn-gold:hover:not(:disabled) { background: #dbb85c; }
 .btn:disabled { opacity: .4; cursor: not-allowed; }
-
-/* ── ALERTS ───────────────────────────────────────── */
 .alert { padding: 10px 14px; border-radius: 7px; font-size: .83rem; margin-top: 12px; }
 .alert-error { background: rgba(230,57,70,.1); border: 1px solid rgba(230,57,70,.3); color: #f08090; }
-.alert-info  { background: rgba(82,183,136,.1); border: 1px solid rgba(82,183,136,.3); color: var(--accent); }
-
-/* ── PROGRESS ─────────────────────────────────────── */
-.progress-wrap { margin: 10px 0 4px; }
-.prog-bar { height: 5px; background: var(--s3); border-radius: 3px; overflow: hidden; }
-.prog-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--blue)); border-radius: 3px; transition: width .4s; }
-.prog-label { font-size: .75rem; color: var(--muted); margin-top: 6px; }
-
-/* ── STATS ROW ────────────────────────────────────── */
+.prog-bar { height: 5px; background: var(--s3); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.prog-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--blue)); border-radius: 3px; transition: width .3s; }
+.prog-label { font-size: .75rem; color: var(--muted); }
 .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
-.stat-pill {
-  flex: 1; min-width: 70px;
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 8px;
-  text-align: center;
-}
+.stat-pill { flex: 1; background: var(--s1); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; }
 .stat-n { font-size: 1.5rem; font-weight: 700; line-height: 1; font-family: var(--font-mono); }
 .stat-l { font-size: .65rem; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
-.stat-pill.s-blunder .stat-n { color: var(--red); }
-.stat-pill.s-mistake  .stat-n { color: var(--orange); }
-.stat-pill.s-inaccuracy .stat-n { color: var(--yellow); }
-.stat-pill.s-best .stat-n { color: var(--green); }
-
-/* ── ANALYSIS GRID ────────────────────────────────── */
-.analysis-grid { display: grid; grid-template-columns: 250px 1fr; gap: 14px; }
-
-/* ── MOVE LIST ────────────────────────────────────── */
+.s-blunder .stat-n { color: var(--red); } .s-mistake .stat-n { color: var(--orange); } .s-inaccuracy .stat-n { color: var(--yellow); } .s-best .stat-n { color: var(--green); }
+.analysis-grid { display: grid; grid-template-columns: 240px 1fr; gap: 14px; }
 .move-list { max-height: calc(100vh - 310px); overflow-y: auto; }
 .move-pair { display: flex; align-items: center; padding: 1px 0; gap: 3px; }
 .mv-num { font-family: var(--font-mono); font-size: .72rem; color: var(--dim); width: 26px; flex-shrink: 0; text-align: right; padding-right: 4px; }
-.mv-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  border-radius: 5px;
-  padding: 4px 7px;
-  font-family: var(--font-mono);
-  font-size: .84rem;
-  color: var(--muted);
-  cursor: pointer;
-  text-align: left;
-  transition: background .12s, color .12s;
-  white-space: nowrap;
-}
-.mv-btn:hover { background: var(--s3); color: var(--text); }
-.mv-btn.selected { background: var(--s2); color: var(--text); outline: 1px solid var(--border); }
-.mv-btn.is-best       { color: var(--green); }
-.mv-btn.is-inaccuracy { color: var(--yellow); }
-.mv-btn.is-mistake    { color: var(--orange); }
-.mv-btn.is-blunder    { color: var(--red); }
-
-/* ── BADGE ────────────────────────────────────────── */
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: .66rem;
-  font-weight: 700;
-  letter-spacing: .5px;
-  text-transform: uppercase;
-}
-.badge.best        { background: rgba(82,183,136,.15); color: var(--green); }
-.badge.inaccuracy  { background: rgba(233,196,106,.15); color: var(--yellow); }
-.badge.mistake     { background: rgba(244,162,97,.15); color: var(--orange); }
-.badge.blunder     { background: rgba(230,57,70,.15); color: var(--red); }
-.badge.opponent    { background: rgba(106,112,154,.12); color: var(--muted); }
-
-/* ── DETAIL PANEL ─────────────────────────────────── */
+.mv-btn { flex: 1; background: transparent; border: none; border-radius: 5px; padding: 4px 7px; font-family: var(--font-mono); font-size: .84rem; color: var(--muted); cursor: pointer; text-align: left; transition: background .12s, color .12s; white-space: nowrap; }
+.mv-btn:hover { background: var(--s3); color: var(--text); } .mv-btn.selected { background: var(--s2); color: var(--text); outline: 1px solid var(--border); }
+.mv-btn.is-best { color: var(--green); } .mv-btn.is-inaccuracy { color: var(--yellow); } .mv-btn.is-mistake { color: var(--orange); } .mv-btn.is-blunder { color: var(--red); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .66rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.badge.best { background: rgba(82,183,136,.15); color: var(--green); } .badge.inaccuracy { background: rgba(233,196,106,.15); color: var(--yellow); }
+.badge.mistake { background: rgba(244,162,97,.15); color: var(--orange); } .badge.blunder { background: rgba(230,57,70,.15); color: var(--red); }
+.badge.opponent { background: rgba(106,112,154,.12); color: var(--muted); }
 .detail-panel { min-height: 300px; }
 .detail-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
 .detail-empty .di { font-size: 2.2rem; margin-bottom: 10px; opacity: .4; }
-
-.eval-section { margin-bottom: 16px; }
-.eval-bar-wrap { position: relative; height: 10px; background: var(--s3); border-radius: 5px; overflow: hidden; margin-bottom: 5px; }
-.eval-white-fill { position: absolute; top: 0; left: 0; height: 100%; background: #f0f0f0; border-radius: 5px; transition: width .5s cubic-bezier(.4,0,.2,1); }
-.eval-labels { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
-
+.eval-bar-wrap { height: 10px; background: var(--s3); border-radius: 5px; overflow: hidden; margin-bottom: 5px; position: relative; }
+.eval-white-fill { position: absolute; top: 0; left: 0; height: 100%; background: #f0f0f0; border-radius: 5px; transition: width .5s; }
+.eval-labels { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: .72rem; color: var(--muted); margin-bottom: 14px; }
 .data-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .data-box { background: var(--s2); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; }
 .data-box .dl { font-size: .65rem; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .data-box .dv { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; }
-.dv.dv-good { color: var(--green); }
-.dv.dv-bad  { color: var(--red); }
-
-.explanation-wrap { margin-top: 4px; }
-.explanation-label { font-size: .65rem; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-.explanation-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
-.explanation-box {
-  background: var(--s2);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 14px 16px;
-  font-size: .86rem;
-  line-height: 1.7;
-  color: var(--text);
-}
-.explanation-box.loading { color: var(--muted); font-style: italic; }
-
-/* ── PATTERNS PAGE ────────────────────────────────── */
-.game-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--s2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 8px;
-}
-.game-title { font-size: .85rem; font-weight: 500; }
-.game-meta  { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.dv-good { color: var(--green); } .dv-bad { color: var(--red); }
+.exp-label { font-size: .65rem; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.exp-label::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
+.exp-box { background: var(--s2); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; font-size: .86rem; line-height: 1.7; color: var(--text); }
+.exp-box.loading { color: var(--muted); font-style: italic; }
+.game-item { display: flex; justify-content: space-between; align-items: center; background: var(--s2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
 .game-chips { display: flex; gap: 5px; flex-shrink: 0; margin-left: 10px; }
-
-.pattern-output {
-  background: var(--s2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
-  font-size: .86rem;
-  line-height: 1.75;
-  color: var(--text);
-  white-space: pre-wrap;
-  min-height: 60px;
-}
+.pattern-output { background: var(--s2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-size: .86rem; line-height: 1.75; white-space: pre-wrap; }
 .pattern-output.loading { color: var(--muted); font-style: italic; }
-
-/* ── SCROLLBAR ────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 <div class="shell">
-
   <header>
-    <div class="logo">
-      <span class="logo-piece">♟</span>
-      CHESS <em>COACH</em>
-    </div>
+    <div class="logo">♟ CHESS <em>COACH</em></div>
     <div class="header-sub">STOCKFISH + CLAUDE ANALYSIS ENGINE</div>
   </header>
-
   <div class="nav">
     <div class="nav-tab active" onclick="switchTab('analyze')">Analyze Game</div>
     <div class="nav-tab" onclick="switchTab('patterns')">My Patterns</div>
   </div>
-
   <div class="pages">
 
-    <!-- ── ANALYZE PAGE ──────────────────────────── -->
     <div class="page active" id="tab-analyze">
-
-      <div class="card" id="input-card">
+      <div class="card">
         <div class="card-title">Paste PGN</div>
-        <textarea id="pgn-input" placeholder="[Event &quot;Live Chess&quot;]&#10;[White &quot;CheckYoSelf_911&quot;]&#10;[Black &quot;Opponent&quot;]&#10;&#10;1. e4 e5 2. Nc3 ..."></textarea>
+        <textarea id="pgn-input" placeholder='[White "CheckYoSelf_911"]&#10;[Black "Opponent"]&#10;[Result "1-0"]&#10;&#10;1. e4 e5 2. Nc3 Nf6 3. f4 ...'></textarea>
         <div class="input-row">
           <select id="color-select" style="width:auto;min-width:190px">
             <option value="auto">Auto-detect my colour</option>
-            <option value="w">I'm playing White</option>
-            <option value="b">I'm playing Black</option>
+            <option value="w">I am playing White</option>
+            <option value="b">I am playing Black</option>
           </select>
           <button class="btn btn-primary" id="analyze-btn" onclick="startAnalysis()">▶ Analyse</button>
           <button class="btn btn-ghost" onclick="clearAll()">✕ Clear</button>
@@ -323,10 +110,8 @@ select { font-family: var(--font-body); cursor: pointer; }
 
       <div class="card" id="progress-card" style="display:none">
         <div class="card-title">Analysing with Stockfish</div>
-        <div class="progress-wrap">
-          <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
-          <div class="prog-label" id="prog-label">Preparing…</div>
-        </div>
+        <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+        <div class="prog-label" id="prog-label">Loading engine…</div>
       </div>
 
       <div id="results" style="display:none">
@@ -340,187 +125,168 @@ select { font-family: var(--font-body); cursor: pointer; }
           </div>
           <div>
             <div class="card detail-panel" id="detail-panel">
-              <div class="detail-empty">
-                <div class="di">♟</div>
-                <div>Select one of your moves to see analysis</div>
-                <div style="font-size:.78rem;margin-top:6px">Coloured moves have been evaluated by Stockfish</div>
-              </div>
+              <div class="detail-empty"><div class="di">♟</div><div>Select a move to see analysis</div></div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- ── PATTERNS PAGE ─────────────────────────── -->
     <div class="page" id="tab-patterns">
-
       <div class="card">
         <div class="card-title">Analysed Games &nbsp;<span id="game-count" style="color:var(--accent);font-family:var(--font-mono)">0</span></div>
-        <div id="game-list">
-          <div class="detail-empty" style="padding:24px 0">
-            <div style="color:var(--muted)">No games analysed yet — paste a PGN on the Analyze tab</div>
-          </div>
-        </div>
+        <div id="game-list"><div style="color:var(--muted);padding:10px 0;font-size:.84rem">No games analysed yet</div></div>
       </div>
-
       <div class="card">
         <div class="card-title">Pattern Report — powered by Claude</div>
-        <p style="font-size:.84rem;color:var(--muted);margin-bottom:14px">
-          Claude will look across all your stored games, identify your recurring weaknesses, and prioritise what to work on.
-        </p>
-        <button class="btn btn-gold" id="report-btn" onclick="generatePatternReport()">
-          🔍 Generate Report
-        </button>
+        <p style="font-size:.84rem;color:var(--muted);margin-bottom:14px">After analysing several games, Claude reviews all the Stockfish data to identify your recurring weaknesses and what to study next.</p>
+        <button class="btn btn-gold" id="report-btn" onclick="generatePatternReport()">🔍 Generate Report</button>
         <div id="pattern-output-wrap" style="margin-top:16px;display:none">
           <div class="pattern-output" id="pattern-output"></div>
         </div>
       </div>
-
     </div>
 
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════
+// ─── STOCKFISH IN-BROWSER WORKER ──────────────────────────────
+let sfWorker  = null;
+let sfReady   = false;
+
+function initStockfish() {
+  return new Promise((resolve, reject) => {
+    sfWorker = new Worker(
+      'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js'
+    );
+    sfWorker.onerror = e => reject(new Error('Failed to load Stockfish worker. ' + (e.message || '')));
+    sfWorker.onmessage = e => {
+      if (e.data === 'uciok')   { sfWorker.postMessage('isready'); return; }
+      if (e.data === 'readyok') { sfReady = true; resolve(); }
+    };
+    sfWorker.postMessage('uci');
+  });
+}
+
+// Ask Stockfish to evaluate one FEN and return { evalObj, bestMoveUCI }
+function analyzePosition(fen, depth) {
+  return new Promise(resolve => {
+    let lastEval = null;
+    sfWorker.onmessage = e => {
+      const line = e.data;
+      if (line.includes(' score ')) {
+        const cp   = line.match(/score cp (-?\d+)/);
+        const mate = line.match(/score mate (-?\d+)/);
+        if (mate) lastEval = { type: 'mate', value: parseInt(mate[1]) };
+        else if (cp) lastEval = { type: 'cp',   value: parseInt(cp[1])   };
+      }
+      if (line.startsWith('bestmove')) {
+        const parts = line.split(' ');
+        const bm    = (parts[1] && parts[1] !== '(none)') ? parts[1] : null;
+        resolve({ evalObj: lastEval, bestMoveUCI: bm });
+      }
+    };
+    sfWorker.postMessage('position fen ' + fen);
+    sfWorker.postMessage('go depth ' + depth);
+  });
+}
+
+// ─── STATE ────────────────────────────────────────────────────
 let currentMoves     = [];
 let playerColor      = 'w';
 let selectedIdx      = -1;
-let explanationCache = {};
+let expCache         = {};
 
-// ═══════════════════════════════════════════════════
-// NAV
-// ═══════════════════════════════════════════════════
+// ─── NAV ──────────────────────────────────────────────────────
 function switchTab(name) {
-  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active', ['analyze','patterns'][i] === name));
+  document.querySelectorAll('.nav-tab').forEach((t,i) =>
+    t.classList.toggle('active', ['analyze','patterns'][i] === name));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'patterns') loadPatternsPage();
 }
 
-// ═══════════════════════════════════════════════════
-// PGN PARSING  (chess.js 0.10.x)
-// ═══════════════════════════════════════════════════
+// ─── PGN PARSE ────────────────────────────────────────────────
 function parsePGN(pgn) {
-  if (typeof Chess === 'undefined') throw new Error('Chess library not loaded yet — please wait a moment and try again.');
-  const temp = new Chess();
-  if (!temp.load_pgn(pgn.trim())) throw new Error('Invalid PGN — please check the format and try again.');
-  const history = temp.history({ verbose: true });
-  if (!history.length) throw new Error('No moves found in this PGN.');
-  const headers = temp.header();
-
-  const startFen = headers['FEN'] || null;
-  const game = startFen ? new Chess(startFen) : new Chess();
-  const moves = [];
-
-  for (let i = 0; i < history.length; i++) {
-    const h = history[i];
-    const fenBefore = game.fen();
+  if (typeof Chess === 'undefined') throw new Error('Chess.js not loaded yet — wait a moment and try again.');
+  const tmp = new Chess();
+  if (!tmp.load_pgn(pgn.trim())) throw new Error('Invalid PGN — please check the format.');
+  const hist = tmp.history({ verbose: true });
+  if (!hist.length) throw new Error('No moves found in this PGN.');
+  const headers = tmp.header();
+  const game  = new Chess();
+  const moves = hist.map((h, i) => {
+    const before = game.fen();
     game.move(h.san);
-    moves.push({
-      index: i,
-      moveNumber: Math.floor(i / 2) + 1,
-      color: h.color,
-      san: h.san,
-      from: h.from, to: h.to, piece: h.piece,
-      fenBefore,
-      fenAfter: game.fen(),
-      evalBefore: null, evalAfter: null,
-      bestMoveSan: null, cpLoss: null,
-      classification: null
-    });
-  }
+    return { index: i, moveNumber: Math.floor(i/2)+1, color: h.color, san: h.san,
+      fenBefore: before, fenAfter: game.fen(),
+      evalBefore: null, evalAfter: null, bestMoveSan: null, cpLoss: null, classification: null };
+  });
   return { moves, headers };
 }
 
-function detectColor(headers) {
+function detectColor(h) {
   const me = 'checkyoself_911';
-  if ((headers['White'] || '').toLowerCase().includes(me)) return 'w';
-  if ((headers['Black'] || '').toLowerCase().includes(me)) return 'b';
+  if ((h['White']||'').toLowerCase().includes(me)) return 'w';
+  if ((h['Black']||'').toLowerCase().includes(me)) return 'b';
   return 'w';
 }
 
-// ═══════════════════════════════════════════════════
-// STOCKFISH API  (stockfish.online)
-// ═══════════════════════════════════════════════════
-async function sfAnalyze(fen) {
-  const url = `https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=12`;
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (!res.ok) throw new Error(`Stockfish API returned ${res.status}`);
-  const d = await res.json();
-  if (!d.success) throw new Error('Stockfish API error');
-  return { eval: d.evaluation ?? null, mate: d.mate ?? null, bestMove: d.bestmove || null };
+// ─── EVAL HELPERS ─────────────────────────────────────────────
+function eNum(e) {
+  if (!e) return 0;
+  if (e.type === 'mate') return e.value > 0 ? 900 - e.value * 0.5 : -900 - e.value * 0.5;
+  return e.value / 100;
 }
-
-function evalNum(a) {
-  if (!a) return 0;
-  if (a.mate !== null) return a.mate > 0 ? 99 - Math.abs(a.mate) * 0.01 : -99 + Math.abs(a.mate) * 0.01;
-  return a.eval || 0; // pawns
+function eStr(e) {
+  if (!e) return '?';
+  if (e.type === 'mate') return e.value > 0 ? 'M'+e.value : '-M'+Math.abs(e.value);
+  const v = e.value / 100;
+  return (v >= 0 ? '+' : '') + v.toFixed(2);
 }
-
-function evalStr(a) {
-  if (!a) return '?';
-  if (a.mate !== null) return a.mate > 0 ? `M${Math.abs(a.mate)}` : `-M${Math.abs(a.mate)}`;
-  const e = a.eval || 0;
-  return (e >= 0 ? '+' : '') + e.toFixed(2);
+function ePct(e) {
+  if (!e) return 50;
+  if (e.type === 'mate') return e.value > 0 ? 93 : 7;
+  return Math.max(5, Math.min(95, 50 + (e.value/100) * 7));
 }
-
-function evalPct(a) {
-  if (!a) return 50;
-  if (a.mate !== null) return a.mate > 0 ? 93 : 7;
-  return Math.max(5, Math.min(95, 50 + (a.eval || 0) * 7));
-}
-
 function cpLoss(before, after, color) {
-  const eb = evalNum(before) * 100; // centipawns
-  const ea = evalNum(after)  * 100;
-  return color === 'w' ? Math.round(eb - ea) : Math.round(ea - eb);
+  const b = eNum(before) * 100, a = eNum(after) * 100;
+  return Math.max(0, Math.round(color === 'w' ? b - a : a - b));
 }
-
 function classify(loss) {
-  if (loss <  20) return 'best';
-  if (loss < 100) return 'inaccuracy';
-  if (loss < 200) return 'mistake';
-  return 'blunder';
+  return loss < 20 ? 'best' : loss < 100 ? 'inaccuracy' : loss < 200 ? 'mistake' : 'blunder';
 }
-
 function uciToSan(fen, uci) {
-  if (!uci || uci === '(none)') return null;
+  if (!uci) return null;
   try {
     const c = new Chess(fen);
-    const m = c.move({ from: uci.slice(0,2), to: uci.slice(2,4), promotion: uci[4] });
+    const m = c.move({ from: uci.slice(0,2), to: uci.slice(2,4), promotion: uci[4]||'q' });
     return m ? m.san : uci;
   } catch(e) { return uci; }
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-// ═══════════════════════════════════════════════════
-// MAIN ANALYSIS FLOW
-// ═══════════════════════════════════════════════════
+// ─── MAIN ANALYSIS ────────────────────────────────────────────
 async function startAnalysis() {
   const pgn = document.getElementById('pgn-input').value.trim();
   if (!pgn) { showMsg('Please paste a PGN first.', 'error'); return; }
   clearMsg();
-
   let parsed;
-  try { parsed = parsePGN(pgn); }
-  catch(e) { showMsg(e.message, 'error'); return; }
+  try { parsed = parsePGN(pgn); } catch(e) { showMsg(e.message, 'error'); return; }
 
-  const sel = document.getElementById('color-select').value;
-  playerColor = sel === 'auto' ? detectColor(parsed.headers) : sel;
-  currentMoves = parsed.moves;
-  explanationCache = {};
-  selectedIdx = -1;
+  const sel   = document.getElementById('color-select').value;
+  playerColor      = sel === 'auto' ? detectColor(parsed.headers) : sel;
+  currentMoves     = parsed.moves;
+  expCache         = {};
+  selectedIdx      = -1;
 
   document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('results').style.display      = 'none';
   document.getElementById('progress-card').style.display = 'block';
-  document.getElementById('results').style.display = 'none';
+  setProgress(0, 'Loading Stockfish engine…');
 
   try {
+    if (!sfReady) await initStockfish();
     await runAnalysis(currentMoves, playerColor);
   } catch(e) {
     document.getElementById('progress-card').style.display = 'none';
@@ -532,294 +298,199 @@ async function startAnalysis() {
   document.getElementById('progress-card').style.display = 'none';
   document.getElementById('analyze-btn').disabled = false;
   document.getElementById('results').style.display = 'block';
-
   renderStats(currentMoves, playerColor);
   renderMoveList(currentMoves, playerColor, parsed.headers);
   renderDetail(-1);
-
   saveGame({ headers: parsed.headers, moves: currentMoves, playerColor });
 }
 
 async function runAnalysis(moves, color) {
-  // Collect all FENs: starting + after each move
-  const fens = [moves[0].fenBefore, ...moves.map(m => m.fenAfter)];
+  const depth = 12;
+  const fens  = [moves[0].fenBefore, ...moves.map(m => m.fenAfter)];
   const evals = [];
-
   for (let i = 0; i < fens.length; i++) {
-    setProgress(i / fens.length, `Evaluating position ${i + 1} / ${fens.length}…`);
-    const ev = await sfAnalyze(fens[i]);
-    evals.push(ev);
-    if (i < fens.length - 1) await sleep(110);
+    setProgress(i / fens.length, `Evaluating position ${i + 1} of ${fens.length}…`);
+    evals.push(await analyzePosition(fens[i], depth));
   }
-  setProgress(1, 'Complete!');
-
+  setProgress(1, 'Done!');
   for (let i = 0; i < moves.length; i++) {
-    moves[i].evalBefore = evals[i];
-    moves[i].evalAfter  = evals[i + 1];
+    moves[i].evalBefore = evals[i].evalObj;
+    moves[i].evalAfter  = evals[i+1].evalObj;
     if (moves[i].color === color) {
-      const loss = cpLoss(evals[i], evals[i+1], color);
-      moves[i].cpLoss         = loss;
-      moves[i].classification = classify(loss);
-      moves[i].bestMoveSan    = evals[i].bestMove ? uciToSan(moves[i].fenBefore, evals[i].bestMove) : null;
+      moves[i].cpLoss         = cpLoss(evals[i].evalObj, evals[i+1].evalObj, color);
+      moves[i].classification = classify(moves[i].cpLoss);
+      moves[i].bestMoveSan    = uciToSan(moves[i].fenBefore, evals[i].bestMoveUCI);
     } else {
       moves[i].classification = 'opponent';
     }
   }
 }
 
-function setProgress(pct, label) {
-  document.getElementById('prog-fill').style.width  = (pct * 100) + '%';
+function setProgress(p, label) {
+  document.getElementById('prog-fill').style.width  = (p*100) + '%';
   document.getElementById('prog-label').textContent = label;
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER — STATS
-// ═══════════════════════════════════════════════════
+// ─── RENDER STATS ─────────────────────────────────────────────
 function renderStats(moves, color) {
-  const mine = moves.filter(m => m.color === color);
-  const c = { best: 0, inaccuracy: 0, mistake: 0, blunder: 0 };
-  mine.forEach(m => { if (c[m.classification] !== undefined) c[m.classification]++; });
+  const c = {best:0, inaccuracy:0, mistake:0, blunder:0};
+  moves.filter(m => m.color === color).forEach(m => { if (c[m.classification] !== undefined) c[m.classification]++; });
   document.getElementById('stats-row').innerHTML = `
     <div class="stat-pill s-blunder"><div class="stat-n">${c.blunder}</div><div class="stat-l">Blunders</div></div>
     <div class="stat-pill s-mistake"><div class="stat-n">${c.mistake}</div><div class="stat-l">Mistakes</div></div>
     <div class="stat-pill s-inaccuracy"><div class="stat-n">${c.inaccuracy}</div><div class="stat-l">Inaccuracies</div></div>
-    <div class="stat-pill s-best"><div class="stat-n">${c.best}</div><div class="stat-l">Best/Good</div></div>
-  `;
+    <div class="stat-pill s-best"><div class="stat-n">${c.best}</div><div class="stat-l">Best/Good</div></div>`;
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER — MOVE LIST
-// ═══════════════════════════════════════════════════
+// ─── RENDER MOVE LIST ─────────────────────────────────────────
 function renderMoveList(moves, color, headers) {
-  const w = headers['White'] || 'White';
-  const b = headers['Black'] || 'Black';
-  const r = headers['Result'] || '';
-  document.getElementById('game-info-label').textContent = `${w} vs ${b}  ${r}`;
-
+  document.getElementById('game-info-label').textContent =
+    `${headers['White']||'White'} vs ${headers['Black']||'Black'}  ${headers['Result']||''}`;
   const list = document.getElementById('move-list');
   list.innerHTML = '';
-
   for (let i = 0; i < moves.length; i += 2) {
-    const wm = moves[i];
-    const bm = moves[i + 1];
     const row = document.createElement('div');
     row.className = 'move-pair';
-
     const num = document.createElement('span');
-    num.className = 'mv-num';
-    num.textContent = wm.moveNumber + '.';
+    num.className = 'mv-num'; num.textContent = moves[i].moveNumber + '.';
     row.appendChild(num);
-    row.appendChild(makeMvBtn(wm, i));
-    if (bm) row.appendChild(makeMvBtn(bm, i + 1));
+    row.appendChild(makeMvBtn(moves[i], i));
+    if (moves[i+1]) row.appendChild(makeMvBtn(moves[i+1], i+1));
     list.appendChild(row);
   }
 }
-
 function makeMvBtn(move, idx) {
   const btn = document.createElement('button');
   const cl  = move.classification;
-  btn.className = `mv-btn is-${cl === 'opponent' ? 'opp' : cl}`;
-  if (cl === 'blunder')     btn.className = 'mv-btn is-blunder';
-  else if (cl === 'mistake')     btn.className = 'mv-btn is-mistake';
-  else if (cl === 'inaccuracy')  btn.className = 'mv-btn is-inaccuracy';
-  else if (cl === 'best')        btn.className = 'mv-btn is-best';
-  else                           btn.className = 'mv-btn';
-
-  const suffix = cl === 'blunder' ? ' ✗' : cl === 'mistake' ? ' ?' : cl === 'inaccuracy' ? ' ⁻' : '';
-  btn.textContent = move.san + suffix;
+  const sfx = cl==='blunder'?' ✗':cl==='mistake'?' ?':cl==='inaccuracy'?' ⁻':'';
+  btn.className = `mv-btn${cl==='best'?' is-best':cl==='inaccuracy'?' is-inaccuracy':cl==='mistake'?' is-mistake':cl==='blunder'?' is-blunder':''}`;
+  btn.textContent = move.san + sfx;
   btn.id = 'mb-' + idx;
   btn.onclick = () => selectMove(idx);
   return btn;
 }
-
 function selectMove(idx) {
-  if (selectedIdx >= 0) {
-    const p = document.getElementById('mb-' + selectedIdx);
-    if (p) p.classList.remove('selected');
-  }
+  if (selectedIdx >= 0) { const p = document.getElementById('mb-'+selectedIdx); if(p) p.classList.remove('selected'); }
   selectedIdx = idx;
-  const btn = document.getElementById('mb-' + idx);
-  if (btn) { btn.classList.add('selected'); btn.scrollIntoView({ block: 'nearest' }); }
+  const b = document.getElementById('mb-'+idx);
+  if (b) { b.classList.add('selected'); b.scrollIntoView({block:'nearest'}); }
   renderDetail(idx);
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER — DETAIL PANEL
-// ═══════════════════════════════════════════════════
+// ─── RENDER DETAIL ────────────────────────────────────────────
 function renderDetail(idx) {
   const panel = document.getElementById('detail-panel');
-
   if (idx < 0 || !currentMoves[idx]) {
-    panel.innerHTML = `<div class="detail-empty"><div class="di">♟</div><div>Select one of your moves to see analysis</div><div style="font-size:.78rem;margin-top:6px;color:var(--muted)">Blunders, mistakes and inaccuracies are highlighted</div></div>`;
+    panel.innerHTML = '<div class="detail-empty"><div class="di">♟</div><div>Select a move to see analysis</div></div>';
     return;
   }
-
-  const m  = currentMoves[idx];
-  const cl = m.classification || 'opponent';
+  const m    = currentMoves[idx];
+  const cl   = m.classification || 'opponent';
   const isMe = m.color === playerColor;
-  const pct = evalPct(m.evalAfter);
-
-  const cpText = (isMe && m.cpLoss !== null) ?
-    (m.cpLoss > 0 ? `−${m.cpLoss}cp` : `+${Math.abs(m.cpLoss)}cp`) : '—';
+  const pct  = ePct(m.evalAfter);
+  const cpTxt = (isMe && m.cpLoss !== null) ? (m.cpLoss > 0 ? `−${m.cpLoss}cp` : '±0') : '—';
 
   panel.innerHTML = `
     <div class="card-title" style="margin-bottom:14px">
-      Move ${m.moveNumber}${m.color === 'b' ? '…' : '.'} ${m.san}
-      &nbsp;<span class="badge ${cl}">${cl === 'opponent' ? "opponent" : cl}</span>
+      Move ${m.moveNumber}${m.color==='b'?'…':'.'} ${m.san}
+      &nbsp;<span class="badge ${cl}">${cl==='opponent'?'opponent':cl}</span>
     </div>
-
-    <div class="eval-section">
-      <div class="eval-bar-wrap">
-        <div class="eval-white-fill" style="width:${pct}%"></div>
-      </div>
-      <div class="eval-labels">
-        <span>⬜ White ${evalStr(m.evalBefore)}</span>
-        <span>Black ${evalStr(m.evalAfter)} ⬛</span>
-      </div>
-    </div>
-
+    <div class="eval-bar-wrap"><div class="eval-white-fill" style="width:${pct}%"></div></div>
+    <div class="eval-labels"><span>⬜ White ${eStr(m.evalBefore)}</span><span>Black ${eStr(m.evalAfter)} ⬛</span></div>
     ${isMe ? `
-    <div class="data-row">
-      <div class="data-box">
-        <div class="dl">Played</div>
-        <div class="dv">${m.san}</div>
+      <div class="data-row">
+        <div class="data-box"><div class="dl">Played</div><div class="dv">${m.san}</div></div>
+        <div class="data-box"><div class="dl">Best Move</div><div class="dv dv-good">${m.bestMoveSan||'—'}</div></div>
+        <div class="data-box"><div class="dl">CP Loss</div><div class="dv ${m.cpLoss>100?'dv-bad':'dv-good'}">${cpTxt}</div></div>
       </div>
-      <div class="data-box">
-        <div class="dl">Best Move</div>
-        <div class="dv dv-good">${m.bestMoveSan || '—'}</div>
-      </div>
-      <div class="data-box">
-        <div class="dl">CP Loss</div>
-        <div class="dv ${m.cpLoss > 100 ? 'dv-bad' : 'dv-good'}">${cpText}</div>
-      </div>
-    </div>
-    ` : `<p style="font-size:.83rem;color:var(--muted);margin-bottom:16px">Your opponent's move — no evaluation needed.</p>`}
-
-    ${isMe ? `
-    <div class="explanation-wrap">
-      <div class="explanation-label">Claude's Analysis</div>
-      <div class="explanation-box ${cl === 'best' ? '' : 'loading'}" id="exp-box">
-        ${cl === 'best'
-          ? '✓ This was a strong move. No significant errors here.'
-          : '⏳ Loading explanation…'}
-      </div>
-    </div>
-    ` : ''}
-  `;
+      ${cl !== 'opponent' ? `
+        <div class="exp-label">Claude's Analysis</div>
+        <div class="exp-box ${cl==='best'?'':'loading'}" id="exp-box">
+          ${cl==='best' ? '✓ Strong move — no significant error here.' : '⏳ Generating explanation…'}
+        </div>` : ''}
+    ` : '<p style="font-size:.83rem;color:var(--muted)">Opponent\'s move — no evaluation shown.</p>'}`;
 
   if (isMe && cl !== 'best' && cl !== 'opponent') {
-    if (explanationCache[idx]) {
-      const box = document.getElementById('exp-box');
-      if (box) { box.textContent = explanationCache[idx]; box.classList.remove('loading'); }
-    } else {
-      loadExplanation(idx);
-    }
+    if (expCache[idx]) {
+      const b = document.getElementById('exp-box'); if(b){b.textContent=expCache[idx];b.classList.remove('loading');}
+    } else { loadExplanation(idx); }
   }
 }
 
-// ═══════════════════════════════════════════════════
-// CLAUDE — MOVE EXPLANATION
-// ═══════════════════════════════════════════════════
+// ─── CLAUDE EXPLANATION ───────────────────────────────────────
 async function loadExplanation(idx) {
   const m  = currentMoves[idx];
   const cl = m.classification;
+  const prompt = `You are a chess coach. A player rated ~1100-1200 just made a ${cl}.
 
-  const prompt = `You are a chess coach. A player rated ~1100-1200 on chess.com just made a ${cl}.
-
-Position (FEN before the move): ${m.fenBefore}
+FEN before move: ${m.fenBefore}
 Move played: ${m.san}
-Stockfish best move: ${m.bestMoveSan || 'unknown'}
-Evaluation before: ${evalStr(m.evalBefore)} (White's perspective, positive = White better)
-Evaluation after:  ${evalStr(m.evalAfter)}
+Stockfish best move: ${m.bestMoveSan||'unknown'}
+Eval before: ${eStr(m.evalBefore)} (positive = White better)
+Eval after: ${eStr(m.evalAfter)}
 Centipawn loss: ${m.cpLoss}
-Playing as: ${m.color === 'w' ? 'White' : 'Black'}, Move ${m.moveNumber}
+Playing as: ${m.color==='w'?'White':'Black'}, Move ${m.moveNumber}
 
-Write 2-3 sentences only:
-1. Why the move played was a ${cl} — be specific to this position
-2. What the better move achieves concretely
-3. The key tactical or positional idea to remember
-
-No preamble, no generic advice. Just the targeted coaching point.`;
+In 2-3 sentences: (1) why this specific move was a ${cl}, (2) what the better move achieves concretely, (3) the key concept to remember. Be specific to this position — no generic advice.`;
 
   try {
     const res  = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
     const text = data.content?.[0]?.text || 'Could not generate explanation.';
-    explanationCache[idx] = text;
+    expCache[idx] = text;
     if (selectedIdx === idx) {
-      const box = document.getElementById('exp-box');
-      if (box) { box.textContent = text; box.classList.remove('loading'); }
+      const b = document.getElementById('exp-box'); if(b){b.textContent=text;b.classList.remove('loading');}
     }
   } catch(e) {
-    explanationCache[idx] = '⚠ Could not load explanation: ' + e.message;
+    expCache[idx] = '⚠ ' + e.message;
     if (selectedIdx === idx) {
-      const box = document.getElementById('exp-box');
-      if (box) { box.textContent = explanationCache[idx]; box.classList.remove('loading'); }
+      const b = document.getElementById('exp-box'); if(b){b.textContent=expCache[idx];b.classList.remove('loading');}
     }
   }
 }
 
-// ═══════════════════════════════════════════════════
-// STORAGE
-// ═══════════════════════════════════════════════════
+// ─── STORAGE ──────────────────────────────────────────────────
 async function saveGame({ headers, moves, playerColor }) {
   try {
     const games = await loadGames();
-    const compact = {
-      date:     new Date().toISOString().split('T')[0],
-      white:    headers['White']  || 'White',
-      black:    headers['Black']  || 'Black',
-      result:   headers['Result'] || '*',
-      playerColor,
+    games.push({
+      date: new Date().toISOString().split('T')[0],
+      white: headers['White']||'White', black: headers['Black']||'Black',
+      result: headers['Result']||'*', playerColor,
       totalMoves: moves.filter(m => m.color === playerColor).length,
-      blunders:     moves.filter(m => m.classification === 'blunder').map(m => ({ n: m.moveNumber, san: m.san, best: m.bestMoveSan, cp: m.cpLoss, fen: m.fenBefore })),
-      mistakes:     moves.filter(m => m.classification === 'mistake').map(m => ({ n: m.moveNumber, san: m.san, best: m.bestMoveSan, cp: m.cpLoss })),
-      inaccuracies: moves.filter(m => m.classification === 'inaccuracy').map(m => ({ n: m.moveNumber, san: m.san, best: m.bestMoveSan, cp: m.cpLoss }))
-    };
-    games.push(compact);
+      blunders:     moves.filter(m=>m.classification==='blunder')    .map(m=>({n:m.moveNumber,san:m.san,best:m.bestMoveSan,cp:m.cpLoss})),
+      mistakes:     moves.filter(m=>m.classification==='mistake')    .map(m=>({n:m.moveNumber,san:m.san,best:m.bestMoveSan,cp:m.cpLoss})),
+      inaccuracies: moves.filter(m=>m.classification==='inaccuracy') .map(m=>({n:m.moveNumber,san:m.san,best:m.bestMoveSan,cp:m.cpLoss}))
+    });
     if (games.length > 40) games.splice(0, games.length - 40);
-    await window.storage.set('chess-coach-v1', JSON.stringify(games));
-  } catch(e) { console.warn('Storage save failed:', e); }
+    await window.storage.set('chess-coach-v2', JSON.stringify(games));
+  } catch(e) { console.warn('Save failed:', e); }
 }
-
 async function loadGames() {
-  try {
-    const r = await window.storage.get('chess-coach-v1');
-    return r ? JSON.parse(r.value) : [];
-  } catch(e) { return []; }
+  try { const r = await window.storage.get('chess-coach-v2'); return r ? JSON.parse(r.value) : []; }
+  catch(e) { return []; }
 }
 
-// ═══════════════════════════════════════════════════
-// PATTERNS PAGE
-// ═══════════════════════════════════════════════════
+// ─── PATTERNS PAGE ────────────────────────────────────────────
 async function loadPatternsPage() {
   const games = await loadGames();
   document.getElementById('game-count').textContent = games.length;
-
   const list = document.getElementById('game-list');
-  if (!games.length) {
-    list.innerHTML = '<div class="detail-empty" style="padding:20px 0"><div style="color:var(--muted)">Analyse some games on the first tab to build your pattern history</div></div>';
-    return;
-  }
-
+  if (!games.length) { list.innerHTML = '<div style="color:var(--muted);padding:10px 0;font-size:.84rem">No games analysed yet</div>'; return; }
   list.innerHTML = games.slice().reverse().map(g => {
     const isMe = g.playerColor === 'w';
     const opp  = isMe ? g.black : g.white;
-    const won  = (g.result === '1-0' && isMe) || (g.result === '0-1' && !isMe);
-    const drew = g.result === '1/2-1/2' || g.result === '*';
-    const resultIcon = won ? '🟢' : drew ? '🟡' : '🔴';
+    const won  = (g.result==='1-0'&&isMe)||(g.result==='0-1'&&!isMe);
+    const drew = g.result==='1/2-1/2'||g.result==='*';
+    const icon = won ? '🟢' : drew ? '🟡' : '🔴';
     return `<div class="game-item">
       <div>
-        <div class="game-title">${resultIcon} vs ${opp}</div>
-        <div class="game-meta">${g.date} · as ${isMe ? 'White' : 'Black'} · ${g.totalMoves} moves</div>
+        <div style="font-size:.85rem;font-weight:500">${icon} vs ${opp}</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:2px">${g.date} · as ${isMe?'White':'Black'} · ${g.totalMoves} moves</div>
       </div>
       <div class="game-chips">
         ${g.blunders.length     ? `<span class="badge blunder">${g.blunders.length}B</span>` : ''}
@@ -832,74 +503,50 @@ async function loadPatternsPage() {
 
 async function generatePatternReport() {
   const games = await loadGames();
-  if (!games.length) {
-    document.getElementById('pattern-output').textContent = 'Analyse some games first.';
-    document.getElementById('pattern-output-wrap').style.display = 'block';
-    return;
-  }
-
+  if (!games.length) { alert('Analyse some games first.'); return; }
   document.getElementById('report-btn').disabled = true;
   document.getElementById('pattern-output-wrap').style.display = 'block';
   const out = document.getElementById('pattern-output');
-  out.textContent = '⏳ Generating report…';
-  out.className = 'pattern-output loading';
+  out.textContent = '⏳ Generating report…'; out.className = 'pattern-output loading';
 
-  const summary = games.map((g, i) => {
-    const opp = g.playerColor === 'w' ? g.black : g.white;
-    const bList = g.blunders.map(b => `  Move ${b.n}: ${b.san} (played) → ${b.best||'?'} (best) [−${b.cp}cp]`).join('\n');
-    const mList = g.mistakes.map(m => `  Move ${m.n}: ${m.san} → ${m.best||'?'} [−${m.cp}cp]`).join('\n');
-    return `Game ${i+1}: vs ${opp}, ${g.result}, as ${g.playerColor==='w'?'White':'Black'} (${g.date})\nBlunders:\n${bList||'  None'}\nMistakes:\n${mList||'  None'}`;
+  const summary = games.map((g,i) => {
+    const opp = g.playerColor==='w' ? g.black : g.white;
+    const bl  = g.blunders.map(b => `  Move ${b.n}: played ${b.san}, best was ${b.best||'?'} [−${b.cp}cp]`).join('\n');
+    const mi  = g.mistakes.map(m => `  Move ${m.n}: played ${m.san}, best was ${m.best||'?'} [−${m.cp}cp]`).join('\n');
+    return `Game ${i+1} (${g.date}): vs ${opp}, result ${g.result}, as ${g.playerColor==='w'?'White':'Black'}\nBlunders:\n${bl||'  None'}\nMistakes:\n${mi||'  None'}`;
   }).join('\n\n');
 
-  const prompt = `You are a chess coach. Here is a Stockfish-verified analysis summary of ${games.length} games by CheckYoSelf_911, rated ~1100-1200 on chess.com.
-
-Each game lists the blunders and mistakes detected, including what was played vs what Stockfish recommended.
+  const prompt = `You are a chess coach reviewing Stockfish-verified data from ${games.length} games by CheckYoSelf_911 (~1100-1200 chess.com rating).
 
 ${summary}
 
-Write a coaching report that:
-1. Identifies the 3-4 most significant recurring patterns across ALL these games
-2. Cites specific moves/games as evidence (e.g. "Game 3, Move 14")
-3. Ranks them by estimated rating impact (most costly first)
-4. For each pattern: one specific drill or study method to fix it
+Write a coaching report:
+1. The 3-4 most significant recurring error patterns across all games
+2. Cite specific game numbers and move numbers as evidence
+3. Rank by estimated rating impact (highest first)
+4. For each pattern: one specific, actionable drill or study method to fix it
 
-Be direct, specific, and actionable. No generic chess advice. Reference the actual data above.`;
+Be direct and specific. Reference the actual data. No generic advice.`;
 
   try {
     const res  = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
     out.textContent = data.content?.[0]?.text || 'Could not generate report.';
     out.className = 'pattern-output';
-  } catch(e) {
-    out.textContent = '⚠ Error: ' + e.message;
-    out.className = 'pattern-output';
-  }
-
+  } catch(e) { out.textContent = '⚠ ' + e.message; out.className = 'pattern-output'; }
   document.getElementById('report-btn').disabled = false;
 }
 
-// ═══════════════════════════════════════════════════
-// UTILITY
-// ═══════════════════════════════════════════════════
+// ─── UTILS ────────────────────────────────────────────────────
 function clearAll() {
-  document.getElementById('pgn-input').value = '';
-  document.getElementById('results').style.display = 'none';
-  clearMsg();
-  currentMoves = [];
-  selectedIdx  = -1;
+  document.getElementById('pgn-input').value = ''; document.getElementById('results').style.display = 'none';
+  clearMsg(); currentMoves = []; selectedIdx = -1;
 }
-
-function showMsg(msg, type) {
-  document.getElementById('input-msg').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
-}
+function showMsg(msg, type) { document.getElementById('input-msg').innerHTML = `<div class="alert alert-${type}">${msg}</div>`; }
 function clearMsg() { document.getElementById('input-msg').innerHTML = ''; }
 </script>
 </body>
