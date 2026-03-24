@@ -161,8 +161,11 @@ const SF_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stock
 let sfWorker = null;
 let sfReady  = false;
 
+// Single persistent handler — swap this reference instead of
+// re-assigning sfWorker.onmessage on every analyzePosition call.
+let currentHandler = null;
+
 async function initStockfish() {
-  // 1. Fetch the script text
   let sfText;
   try {
     const r = await fetch(SF_CDN);
@@ -172,20 +175,25 @@ async function initStockfish() {
     throw new Error('Could not download Stockfish engine (' + e.message + '). Check your internet connection.');
   }
 
-  // 2. Turn it into a same-origin blob URL so the Worker constructor accepts it
-  const blob   = new Blob([sfText], { type: 'application/javascript' });
+  const blob    = new Blob([sfText], { type: 'application/javascript' });
   const blobURL = URL.createObjectURL(blob);
 
-  // 3. Spin up the worker and wait for readyok
   await new Promise((resolve, reject) => {
     sfWorker = new Worker(blobURL);
     sfWorker.onerror = e => reject(new Error('Worker error: ' + (e.message || 'unknown')));
-    sfWorker.onmessage = ev => {
+
+    // FIX: set onmessage BEFORE posting 'uci' to avoid race on slow connections.
+    // Single persistent router — never overwrite sfWorker.onmessage again.
+    sfWorker.onmessage = ev => { if (currentHandler) currentHandler(ev); };
+
+    currentHandler = ev => {
       if (ev.data === 'uciok')   { sfWorker.postMessage('isready'); return; }
-      if (ev.data === 'readyok') { sfReady = true; resolve(); }
+      if (ev.data === 'readyok') { sfReady = true; currentHandler = null; resolve(); }
     };
+
     sfWorker.postMessage('uci');
   });
+
   URL.revokeObjectURL(blobURL);
 }
 
@@ -193,7 +201,19 @@ async function initStockfish() {
 function analyzePosition(fen, depth) {
   return new Promise(resolve => {
     let lastEval = null;
-    sfWorker.onmessage = ev => {
+    let settled  = false;
+
+    // FIX: 10-second timeout so a missed bestmove never hangs the loop.
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        currentHandler = null;
+        resolve({ evalObj: lastEval, bestMoveUCI: null });
+      }
+    }, 10000);
+
+    // FIX: swap the shared handler reference instead of overwriting onmessage.
+    currentHandler = ev => {
       const line = ev.data;
       if (typeof line !== 'string') return;
       if (line.includes(' score ')) {
@@ -203,11 +223,16 @@ function analyzePosition(fen, depth) {
         else if (cp) lastEval = { type:'cp',   value: parseInt(cp[1])   };
       }
       if (line.startsWith('bestmove')) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        currentHandler = null;
         const p  = line.split(' ');
         const bm = (p[1] && p[1] !== '(none)') ? p[1] : null;
         resolve({ evalObj: lastEval, bestMoveUCI: bm });
       }
     };
+
     sfWorker.postMessage('position fen ' + fen);
     sfWorker.postMessage('go depth ' + depth);
   });
